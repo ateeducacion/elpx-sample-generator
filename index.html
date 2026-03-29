@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="description" content="Generador estático de archivos .elpx para eXeLearning">
+  <title>Generador ELPX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+            display: ['Fraunces', 'ui-serif', 'Georgia', 'serif'],
+          },
+          boxShadow: {
+            soft: '0 16px 48px rgba(15, 23, 42, 0.06)',
+          },
+        },
+      },
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900 antialiased text-[14px]">
+  <main class="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-5 sm:px-6">
+
+    <header class="mb-5 text-center">
+      <h1 class="font-display text-xl tracking-tight text-slate-950">Generador ELPX</h1>
+      <p class="mt-0.5 text-[11px] text-slate-400">Genera proyectos .elpx aleatorios desde el navegador</p>
+    </header>
+
+    <!-- Stepper -->
+    <nav class="mb-5" aria-label="Progreso del asistente">
+      <ol class="flex items-center justify-center">
+        <li class="flex items-center">
+          <button type="button" data-step-nav="0" class="wizard-step-btn group flex items-center gap-2">
+            <span class="step-circle flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300">
+              <span class="step-number">1</span>
+              <svg class="step-check hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <span class="hidden text-xs font-semibold transition-colors sm:block">Proyecto</span>
+          </button>
+        </li>
+        <li class="mx-3 sm:mx-5"><div class="step-line h-0.5 w-14 rounded-full bg-slate-200 transition-colors duration-300 sm:w-20"></div></li>
+        <li class="flex items-center">
+          <button type="button" data-step-nav="1" class="wizard-step-btn group flex items-center gap-2">
+            <span class="step-circle flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all duration-300">
+              <span class="step-number">2</span>
+              <svg class="step-check hidden h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            </span>
+            <span class="hidden text-xs font-semibold transition-colors sm:block">Contenido</span>
+          </button>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Wizard content -->
+    <section class="flex-1">
+      <form id="configForm">
+
+        <!-- Step 1: Project + Export options -->
+        <div data-step-panel="0" class="wizard-panel">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
+            <h2 class="mb-0.5 text-sm font-bold text-slate-950">Datos del proyecto</h2>
+            <p class="mb-4 text-[11px] text-slate-400">Metadatos y opciones de exportacion del paquete.</p>
+
+            <div class="grid gap-3.5">
+              <div class="grid gap-3.5 sm:grid-cols-[1fr_150px]">
+                <label class="grid gap-1">
+                  <span class="text-xs font-medium text-slate-500">Titulo</span>
+                  <input id="title" type="text" value="Proyecto eXeLearning aleatorio" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
+                </label>
+                <label class="grid gap-1">
+                  <span class="text-xs font-medium text-slate-500">Autor</span>
+                  <input id="author" type="text" value="Generador ELPX" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-900 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-100">
+                </label>
+              </div>
+
+              <!-- Language -->
+              <div>
+                <span class="mb-1.5 block text-xs font-medium text-slate-500">Idioma</span>
+                <div id="languageGroup" class="flex flex-wrap gap-1.5">
+                  <label class="cursor-pointer"><input type="radio" name="language" value="es" checked class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">Espanol</span></label>
+                  <label class="cursor-pointer"><input type="radio" name="language" value="en" class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">English</span></label>
+                  <label class="cursor-pointer"><input type="radio" name="language" value="eu" class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">Euskara</span></label>
+                  <label class="cursor-pointer"><input type="radio" name="language" value="ca" class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">Catala</span></label>
+                  <label class="cursor-pointer"><input type="radio" name="language" value="gl" class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">Galego</span></label>
+                  <label class="cursor-pointer"><input type="radio" name="language" value="va" class="peer sr-only"><span class="inline-block rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition peer-checked:border-sky-400 peer-checked:bg-sky-50 peer-checked:text-sky-700">Valencia</span></label>
+                </div>
+              </div>
+
+              <!-- Theme -->
+              <div>
+                <span class="mb-1.5 block text-xs font-medium text-slate-500">Tema</span>
+                <div id="themeGroup" class="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="base" checked class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/base/screenshot.png" alt="base" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">base</span></label>
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="flux" class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/flux/screenshot.png" alt="flux" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">flux</span></label>
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="neo" class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/neo/screenshot.png" alt="neo" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">neo</span></label>
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="nova" class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/nova/screenshot.png" alt="nova" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">nova</span></label>
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="universal" class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/universal/screenshot.png" alt="universal" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">universal</span></label>
+                  <label class="theme-card cursor-pointer"><input type="radio" name="theme" value="zen" class="peer sr-only"><div class="overflow-hidden rounded-lg border-2 border-slate-200 transition peer-checked:border-sky-500 peer-checked:ring-2 peer-checked:ring-sky-200"><img src="./assets/exelearning/public/files/perm/themes/base/zen/screenshot.png" alt="zen" class="aspect-[4/3] w-full object-cover" loading="lazy"></div><span class="mt-0.5 block text-center text-[10px] font-medium text-slate-400 peer-checked:text-sky-700">zen</span></label>
+                </div>
+              </div>
+
+              <!-- Export options -->
+              <div>
+                <h3 class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Opciones</h3>
+                <div class="grid grid-cols-3 gap-1.5 sm:grid-cols-3">
+                  <label title="Incluye un campo de busqueda en el proyecto exportado" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="searchBox" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Buscador</span>
+                  </label>
+                  <label title="Muestra botones Anterior/Siguiente para navegar entre paginas" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="pagination" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Paginacion</span>
+                  </label>
+                  <label title="Muestra el numero de pagina actual y el total" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="pageCounter" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Contador</span>
+                  </label>
+                  <label title="Anade un enlace a eXeLearning en el pie del proyecto" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="exeLink" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Enlace eXe</span>
+                  </label>
+                  <label title="Incluye la barra de accesibilidad de eXeLearning" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="accessibility" type="checkbox" class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Accesibilidad</span>
+                  </label>
+                  <label title="Carga MathJax para renderizar formulas LaTeX" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="mathjax" type="checkbox" class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">MathJax</span>
+                  </label>
+                  <label title="Anade un pie de pagina al proyecto con texto del generador" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="footer" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Footer</span>
+                  </label>
+                  <label title="Incluye los archivos fuente del proyecto dentro del paquete" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="exportSource" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Source</span>
+                  </label>
+                  <label title="Anade duracion y agrupamiento a cada iDevice" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 transition hover:bg-slate-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50">
+                    <input id="timing" type="checkbox" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium text-slate-600">Tiempos</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Structure + Content + Images -->
+        <div data-step-panel="1" class="wizard-panel hidden">
+          <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-soft sm:p-5">
+            <h2 class="mb-0.5 text-sm font-bold text-slate-950">Estructura y contenido</h2>
+            <p class="mb-4 text-[11px] text-slate-400">Define paginas, bloques, tipos de contenido e imagenes.</p>
+
+            <div class="grid gap-4">
+              <!-- Structure sliders -->
+              <div>
+                <h3 class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Estructura</h3>
+                <div class="grid gap-3">
+                  <label class="grid gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-slate-500">Paginas raiz</span>
+                      <span class="range-value min-w-[2ch] text-right text-xs font-bold text-sky-600" data-for="pages">3</span>
+                    </div>
+                    <input id="pages" type="range" min="1" max="25" value="3" class="range-slider w-full">
+                  </label>
+                  <label class="grid gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-slate-500">Profundidad</span>
+                      <span class="range-value min-w-[2ch] text-right text-xs font-bold text-sky-600" data-for="depth">2</span>
+                    </div>
+                    <input id="depth" type="range" min="1" max="4" value="2" class="range-slider w-full">
+                  </label>
+                  <label class="grid gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-slate-500">Hijos por pagina</span>
+                      <span class="range-value min-w-[2ch] text-right text-xs font-bold text-sky-600" data-for="children">2</span>
+                    </div>
+                    <input id="children" type="range" min="0" max="8" value="2" class="range-slider w-full">
+                  </label>
+                  <label class="grid gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-slate-500">Bloques por pagina</span>
+                      <span class="range-value min-w-[2ch] text-right text-xs font-bold text-sky-600" data-for="blocks">2</span>
+                    </div>
+                    <input id="blocks" type="range" min="1" max="8" value="2" class="range-slider w-full">
+                  </label>
+                  <label class="grid gap-1">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-medium text-slate-500">iDevices por bloque</span>
+                      <span class="range-value min-w-[2ch] text-right text-xs font-bold text-sky-600" data-for="components">1</span>
+                    </div>
+                    <input id="components" type="range" min="1" max="5" value="1" class="range-slider w-full">
+                  </label>
+                  <div class="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                    <span class="text-xs font-medium text-slate-500">Iconos</span>
+                    <label class="relative inline-flex cursor-pointer items-center">
+                      <input id="icons" type="checkbox" checked class="peer sr-only">
+                      <div class="h-5 w-9 rounded-full bg-slate-300 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all peer-checked:bg-sky-600 peer-checked:after:translate-x-full peer-focus:ring-2 peer-focus:ring-sky-100"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content types -->
+              <div>
+                <h3 class="mb-2 text-xs font-bold uppercase tracking-wider text-slate-400">Tipos de contenido</h3>
+                <div id="contentTypes" class="flex flex-wrap gap-1.5">
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="text" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Texto</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="quote" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Cita</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="list" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Lista</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="table" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Tabla</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="image" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Imagen</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="mermaid" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Mermaid</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="latex" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">LaTeX</span>
+                  </label>
+                  <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 transition hover:border-sky-200 hover:bg-sky-50 has-[:checked]:border-sky-300 has-[:checked]:bg-sky-50 has-[:checked]:text-sky-700">
+                    <input type="checkbox" value="callout" checked class="h-3.5 w-3.5 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <span class="text-xs font-medium">Aviso</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Text -->
+              <label class="grid gap-1">
+                <span class="text-xs font-medium text-slate-500">Texto base</span>
+                <textarea id="lorem" rows="2" class="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-100">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</textarea>
+              </label>
+
+              <!-- Image gallery -->
+              <div>
+                <div class="mb-2 flex items-center justify-between">
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Imagenes</h3>
+                  <button id="addImageBtn" type="button" class="inline-flex items-center gap-1 rounded-md bg-sky-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-sky-500">
+                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                    Agregar
+                  </button>
+                </div>
+                <div id="imageGallery" class="grid grid-cols-2 gap-2 sm:grid-cols-4"></div>
+              </div>
+            </div>
+
+            <!-- Generate -->
+            <div class="mt-5 border-t border-slate-200 pt-4">
+              <button id="generateBtn" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-sky-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-sky-600/20 transition hover:bg-sky-500 hover:-translate-y-0.5" type="button">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Generar .elpx
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </section>
+
+    <!-- Navigation -->
+    <div class="mt-4 flex items-center justify-between">
+      <button id="wizardPrev" type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40">
+        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Anterior
+      </button>
+      <span id="wizardLabel" class="text-[11px] font-medium text-slate-400">Paso 1 de 2</span>
+      <button id="wizardNext" type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-sky-500">
+        Siguiente
+        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <footer class="mt-4 pb-2 text-center text-[10px] text-slate-400">
+      Made with ❤️ by Área de Tecnología Educativa
+    </footer>
+  </main>
+
+  <template id="statusTemplate">
+    <div class="status fixed left-1/2 top-4 z-50 -translate-x-1/2 overflow-hidden rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 shadow-lg" role="status" aria-live="polite">
+      <strong class="block text-xs font-bold text-sky-900"></strong>
+      <span class="mt-0.5 block text-[11px] text-sky-700"></span>
+    </div>
+  </template>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

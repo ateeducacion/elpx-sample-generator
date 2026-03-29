@@ -1,0 +1,196 @@
+export function escapeXml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function keyValue(tag, key, value, depth = 0) {
+  const indent = '  '.repeat(depth);
+  return `${indent}<${tag}>\n${indent}  <key>${escapeXml(key)}</key>\n${indent}  <value>${escapeXml(value)}</value>\n${indent}</${tag}>`;
+}
+
+function makeHtmlView(html, jsonProperties) {
+  return [
+    `          <htmlView><![CDATA[${html}]]></htmlView>`,
+    `          <jsonProperties><![CDATA[${JSON.stringify(jsonProperties || {})}]]></jsonProperties>`,
+  ].join('\n');
+}
+
+export function buildContentXml(config, project) {
+  const meta = project.meta;
+  const lines = [];
+  lines.push('<?xml version="1.0" encoding="UTF-8"?>');
+  lines.push('<!DOCTYPE ode SYSTEM "content.dtd">');
+  lines.push('<ode xmlns="http://www.intef.es/xsd/ode" version="2.0">');
+  lines.push('  <userPreferences>');
+  lines.push(keyValue('userPreference', 'theme', meta.theme, 2));
+  lines.push('  </userPreferences>');
+
+  lines.push('  <odeResources>');
+  lines.push(keyValue('odeResource', 'odeVersionId', project.odeVersionId, 2));
+  lines.push(keyValue('odeResource', 'odeId', project.odeId, 2));
+  lines.push(keyValue('odeResource', 'odeVersionName', '1', 2));
+  lines.push(keyValue('odeResource', 'isDownload', 'true', 2));
+  lines.push(keyValue('odeResource', 'eXeVersion', 'v1.0.0', 2));
+  lines.push('  </odeResources>');
+
+  lines.push('  <odeProperties>');
+  lines.push(keyValue('odeProperty', 'pp_title', meta.title, 2));
+  lines.push(keyValue('odeProperty', 'pp_subtitle', meta.subtitle || '', 2));
+  lines.push(keyValue('odeProperty', 'pp_lang', meta.language, 2));
+  lines.push(keyValue('odeProperty', 'pp_author', meta.author, 2));
+  lines.push(keyValue('odeProperty', 'license', meta.license || 'creative commons: attribution - share alike 4.0', 2));
+  lines.push(keyValue('odeProperty', 'pp_description', meta.description || '', 2));
+  lines.push(keyValue('odeProperty', 'exportSource', String(meta.exportSource), 2));
+  lines.push(keyValue('odeProperty', 'pp_addExeLink', String(meta.exeLink), 2));
+  lines.push(keyValue('odeProperty', 'pp_addPagination', String(meta.pagination), 2));
+  lines.push(keyValue('odeProperty', 'pp_addSearchBox', String(meta.searchBox), 2));
+  lines.push(keyValue('odeProperty', 'pp_addAccessibilityToolbar', String(meta.accessibility), 2));
+  lines.push(keyValue('odeProperty', 'pp_addMathJax', String(meta.mathjax), 2));
+  lines.push(keyValue('odeProperty', 'pp_globalFont', 'default', 2));
+  lines.push(keyValue('odeProperty', 'pp_extraHeadContent', meta.extraHeadContent, 2));
+  lines.push(keyValue('odeProperty', 'footer', meta.footerHtml || '', 2));
+  lines.push('  </odeProperties>');
+
+  lines.push('  <odeNavStructures>');
+  for (const page of project.pages) {
+    lines.push(generatePageXml(page, 2));
+  }
+  lines.push('  </odeNavStructures>');
+  lines.push('</ode>');
+  return lines.join('\n');
+}
+
+function generatePageXml(page, depth = 0) {
+  const indent = '  '.repeat(depth);
+  const childIndent = '  '.repeat(depth + 1);
+  const grandChildIndent = '  '.repeat(depth + 2);
+  const lines = [];
+
+  lines.push(`${indent}<odeNavStructure>`);
+  lines.push(`${childIndent}<odePageId>${escapeXml(page.id)}</odePageId>`);
+  lines.push(`${childIndent}<odeParentPageId>${escapeXml(page.parentId || '')}</odeParentPageId>`);
+  lines.push(`${childIndent}<pageName>${escapeXml(page.title)}</pageName>`);
+  lines.push(`${childIndent}<odeNavStructureOrder>${page.order}</odeNavStructureOrder>`);
+  lines.push(`${childIndent}<odeNavStructureProperties>`);
+  lines.push(keyValue('odeNavStructureProperty', 'titlePage', page.title, depth + 2));
+  lines.push(keyValue('odeNavStructureProperty', 'hidePageTitle', 'false', depth + 2));
+  lines.push(keyValue('odeNavStructureProperty', 'editableInPage', 'false', depth + 2));
+  lines.push(keyValue('odeNavStructureProperty', 'visibility', 'true', depth + 2));
+  lines.push(keyValue('odeNavStructureProperty', 'highlight', 'false', depth + 2));
+  lines.push(keyValue('odeNavStructureProperty', 'description', page.description || '', depth + 2));
+  lines.push(`${childIndent}</odeNavStructureProperties>`);
+  lines.push(`${childIndent}<odePagStructures>`);
+
+  for (const block of page.blocks) {
+    lines.push(`${grandChildIndent}<odePagStructure>`);
+    lines.push(`${grandChildIndent}  <odePageId>${escapeXml(page.id)}</odePageId>`);
+    lines.push(`${grandChildIndent}  <odeBlockId>${escapeXml(block.id)}</odeBlockId>`);
+    lines.push(`${grandChildIndent}  <blockName>${escapeXml(block.name)}</blockName>`);
+    lines.push(`${grandChildIndent}  <iconName>${escapeXml(block.iconName || '')}</iconName>`);
+    lines.push(`${grandChildIndent}  <odePagStructureOrder>${block.order}</odePagStructureOrder>`);
+    lines.push(`${grandChildIndent}  <odePagStructureProperties>`);
+    lines.push(keyValue('odePagStructureProperty', 'visibility', 'true', depth + 3));
+    lines.push(keyValue('odePagStructureProperty', 'teacherOnly', 'false', depth + 3));
+    lines.push(keyValue('odePagStructureProperty', 'allowToggle', 'true', depth + 3));
+    lines.push(keyValue('odePagStructureProperty', 'minimized', 'false', depth + 3));
+    lines.push(keyValue('odePagStructureProperty', 'identifier', '', depth + 3));
+    lines.push(keyValue('odePagStructureProperty', 'cssClass', '', depth + 3));
+    lines.push(`${grandChildIndent}  </odePagStructureProperties>`);
+    lines.push(`${grandChildIndent}  <odeComponents>`);
+
+    for (const component of block.components) {
+      lines.push(`${grandChildIndent}    <odeComponent>`);
+      lines.push(`${grandChildIndent}      <odePageId>${escapeXml(page.id)}</odePageId>`);
+      lines.push(`${grandChildIndent}      <odeBlockId>${escapeXml(block.id)}</odeBlockId>`);
+      lines.push(`${grandChildIndent}      <odeIdeviceId>${escapeXml(component.id)}</odeIdeviceId>`);
+      lines.push(`${grandChildIndent}      <odeIdeviceTypeName>${escapeXml(component.type)}</odeIdeviceTypeName>`);
+      lines.push(`${grandChildIndent}${makeHtmlView(component.htmlView, component.jsonProperties)}`);
+      lines.push(`${grandChildIndent}      <odeComponentsOrder>${component.order}</odeComponentsOrder>`);
+      lines.push(`${grandChildIndent}      <odeComponentsProperties>`);
+      lines.push(keyValue('odeComponentsProperty', 'visibility', 'true', depth + 4));
+      lines.push(keyValue('odeComponentsProperty', 'teacherOnly', 'false', depth + 4));
+      lines.push(keyValue('odeComponentsProperty', 'identifier', '', depth + 4));
+      lines.push(keyValue('odeComponentsProperty', 'cssClass', '', depth + 4));
+      lines.push(`${grandChildIndent}      </odeComponentsProperties>`);
+      lines.push(`${grandChildIndent}    </odeComponent>`);
+    }
+
+    lines.push(`${grandChildIndent}  </odeComponents>`);
+    lines.push(`${grandChildIndent}</odePagStructure>`);
+  }
+
+  lines.push(`${childIndent}</odePagStructures>`);
+  lines.push(`${indent}</odeNavStructure>`);
+  return lines.join('\n');
+}
+
+export function buildContentDtd() {
+  return `<!ELEMENT ode (userPreferences, odeResources, odeProperties, odeNavStructures)>
+<!ELEMENT userPreferences (userPreference*)>
+<!ELEMENT userPreference (key, value)>
+<!ELEMENT odeResources (odeResource*)>
+<!ELEMENT odeResource (key, value)>
+<!ELEMENT odeProperties (odeProperty*)>
+<!ELEMENT odeProperty (key, value)>
+<!ELEMENT odeNavStructures (odeNavStructure*)>
+<!ELEMENT odeNavStructure (odePageId, odeParentPageId, pageName, odeNavStructureOrder, odeNavStructureProperties, odePagStructures)>
+<!ELEMENT odeNavStructureProperties (odeNavStructureProperty*)>
+<!ELEMENT odeNavStructureProperty (key, value)>
+<!ELEMENT odePagStructures (odePagStructure*)>
+<!ELEMENT odePagStructure (odePageId, odeBlockId, blockName, iconName, odePagStructureOrder, odePagStructureProperties, odeComponents)>
+<!ELEMENT odePagStructureProperties (odePagStructureProperty*)>
+<!ELEMENT odePagStructureProperty (key, value)>
+<!ELEMENT odeComponents (odeComponent*)>
+<!ELEMENT odeComponent (odePageId, odeBlockId, odeIdeviceId, odeIdeviceTypeName, htmlView, jsonProperties, odeComponentsOrder, odeComponentsProperties)>
+<!ELEMENT odeComponentsProperties (odeComponentsProperty*)>
+<!ELEMENT odeComponentsProperty (key, value)>
+<!ELEMENT key (#PCDATA)>
+<!ELEMENT value (#PCDATA)>
+<!ELEMENT pageName (#PCDATA)>
+<!ELEMENT blockName (#PCDATA)>
+<!ELEMENT iconName (#PCDATA)>
+<!ELEMENT htmlView (#PCDATA)>
+<!ELEMENT jsonProperties (#PCDATA)>
+<!ELEMENT odePageId (#PCDATA)>
+<!ELEMENT odeBlockId (#PCDATA)>
+<!ELEMENT odeIdeviceId (#PCDATA)>
+<!ELEMENT odeIdeviceTypeName (#PCDATA)>
+<!ELEMENT odeNavStructureOrder (#PCDATA)>
+<!ELEMENT odePagStructureOrder (#PCDATA)>
+<!ELEMENT odeComponentsOrder (#PCDATA)>`;
+}
+
+export function buildThemeConfigXml(theme) {
+  const normalizedTheme = String(theme || 'base').trim().toLowerCase();
+  const themeAliases = {
+    default: 'base',
+    base: 'base',
+    flux: 'flux',
+    neo: 'neo',
+    nova: 'nova',
+    universal: 'universal',
+    zen: 'zen',
+  };
+  const safeTheme = themeAliases[normalizedTheme] || 'base';
+  const titles = {
+    base: 'Base',
+    flux: 'Flux',
+    neo: 'Neo',
+    nova: 'Nova',
+    universal: 'Universal',
+    zen: 'Zen',
+  };
+  const descriptions = {
+    base: 'Base eXeLearning theme synced from the upstream repository.',
+    flux: 'Bright, energetic theme generated for sample packages.',
+    neo: 'Neo theme synced from the upstream repository.',
+    nova: 'Nova theme synced from the upstream repository.',
+    universal: 'Accessible, high-contrast theme generated for sample packages.',
+    zen: 'Zen theme synced from the upstream repository.',
+  };
+  return `<?xml version="1.0"?>\n<theme>\n  <name>${escapeXml(safeTheme)}</name>\n  <title>${escapeXml(titles[safeTheme] || 'Base')}</title>\n  <version>2026</version>\n  <compatibility>3.0</compatibility>\n  <author>elpx-sample-generator</author>\n  <license>MIT</license>\n  <description>${escapeXml(descriptions[safeTheme] || descriptions.base)}</description>\n  <downloadable>1</downloadable>\n</theme>`;
+}

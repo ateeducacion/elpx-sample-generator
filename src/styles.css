@@ -1,0 +1,107 @@
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 12%, rgba(186, 230, 253, 0.45), transparent 28%),
+    radial-gradient(circle at 85% 20%, rgba(191, 219, 254, 0.35), transparent 26%),
+    linear-gradient(180deg, #f8fafc 0%, #eef4fb 100%);
+}
+
+::selection {
+  background: rgba(14, 165, 233, 0.16);
+}
+
+/* Stepper states */
+.wizard-step-btn .step-circle {
+  border-color: #e2e8f0;
+  background: white;
+  color: #94a3b8;
+}
+.wizard-step-btn span:last-child {
+  color: #94a3b8;
+}
+
+.wizard-step-btn[data-state="active"] .step-circle {
+  border-color: #0284c7;
+  background: #0284c7;
+  color: white;
+}
+.wizard-step-btn[data-state="active"] span:last-child {
+  color: #0f172a;
+}
+
+.wizard-step-btn[data-state="completed"] .step-circle {
+  border-color: #22c55e;
+  background: #22c55e;
+  color: white;
+}
+.wizard-step-btn[data-state="completed"] .step-number {
+  display: none;
+}
+.wizard-step-btn[data-state="completed"] .step-check {
+  display: block;
+}
+.wizard-step-btn[data-state="completed"] span:last-child {
+  color: #64748b;
+}
+
+.step-line[data-state="completed"] {
+  background-color: #22c55e;
+}
+
+/* Toggle switch */
+.peer:checked ~ div {
+  background-color: #0284c7;
+}
+.peer:checked ~ div::after {
+  transform: translateX(100%);
+}
+
+/* Range slider */
+.range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: #e2e8f0;
+  outline: none;
+  cursor: pointer;
+}
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+.range-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #0284c7;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+.range-slider:focus {
+  outline: none;
+}
+.range-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}

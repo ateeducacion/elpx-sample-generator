@@ -1,0 +1,19 @@
+{
+  "name": "elpx-sample-generator",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Static ELPX generator for eXeLearning",
+  "scripts": {
+    "build": "bun run scripts/build.mjs",
+    "dev": "bun run scripts/dev-server.mjs",
+    "serve": "bun run scripts/dev-server.mjs",
+    "sync:themes": "bun run scripts/sync-exelearning.mjs themes",
+    "sync:idevices": "bun run scripts/sync-exelearning.mjs idevices",
+    "sync:dtd": "bun run scripts/sync-exelearning.mjs dtd",
+    "sync": "bun run scripts/sync-exelearning.mjs all"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2"
+  }
+}
