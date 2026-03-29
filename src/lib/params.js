@@ -17,11 +17,11 @@ export const DEFAULT_CONFIG = {
   pagination: true,
   pageCounter: true,
   exeLink: true,
-  accessibility: true,
-  mathjax: true,
+  accessibility: false,
+  mathjax: false,
   footer: true,
   exportSource: true,
-  timing: true,
+  timing: false,
   lorem:
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   imageUrls: [
