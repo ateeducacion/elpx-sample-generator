@@ -1,43 +1,26 @@
-# elpx-sample-generator
+# Generador ELPX
 
-Generador estático de archivos `.elpx` para eXeLearning.
+Genera proyectos `.elpx` aleatorios para [eXeLearning](https://exelearning.net/) directamente desde el navegador, sin servidor.
 
-## Qué hace
+## Funcionalidades
 
-- Genera un paquete `.elpx` descargable desde el navegador, sin servidor.
-- Permite configurar tema, páginas, subpáginas, bloques, contenido y recursos.
-- Soporta parámetros en la URL para generar proyectos al vuelo.
-- Publica la web en GitHub Pages mediante un workflow de build.
+- Wizard de 2 pasos: proyecto + estructura/contenido.
+- Selector visual de temas con screenshots.
+- Sliders para configurar paginas, profundidad, bloques e iDevices.
+- Galeria de imagenes con thumbnails desde Picsum.
+- Tipos de contenido: texto, cita, lista, tabla, imagen, Mermaid, LaTeX, aviso.
+- Descarga del `.elpx` generado al instante.
+- Publicacion automatica en GitHub Pages.
 
 ## Uso local
 
-1. Instala dependencias con `make deps`.
-2. Sincroniza assets de eXeLearning con `make download`.
-3. Abre `index.html` con un servidor estático o usa `make up`.
-4. Ajusta los campos del formulario.
-5. Pulsa `Generar .elpx`.
-
-## Parámetros de URL
-
-Ejemplos:
-
-```text
-?generate=1&title=Mi%20curso&theme=flux&pages=4&depth=2&blocks=2&components=1
-?config=eyJ0aXRsZSI6Ik1pIGN1cnNvIiwidGhlbWUiOiJ1bml2ZXJzYWwiLCJwYWdlcyI6M30
+```bash
+make deps        # instala dependencias con bun
+make download    # sincroniza temas, iDevices y DTD desde eXeLearning
+make up          # sirve la app en localhost
 ```
 
-Parámetros principales:
-
-- `generate=1` genera automáticamente al cargar.
-- `title`, `author`, `language`, `theme`
-- `pages`, `depth`, `children`, `blocks`, `components`
-- `random=1`, `seed=...`
-- `search=1`, `pagination=1`, `pageCounter=1`, `exeLink=1`
-- `icons=1`, `mathjax=1`, `footer=1`, `accessibility=1`
-- `text=...` para el texto base
-- `images=...` para una lista de URLs separadas por saltos de línea o comas
-- `types=text,image,mermaid,latex,...`
-- `config=...` para un preset completo en base64url JSON
+Abre el navegador, ajusta los campos y pulsa **Generar .elpx**.
 
 ## Build
 
@@ -45,12 +28,22 @@ Parámetros principales:
 make build
 ```
 
-El build sincroniza temas, iDevices y el DTD desde eXeLearning, copia la app a `dist/` y deja el sitio listo para GitHub Pages.
+Sincroniza assets, copia la app a `dist/` y deja el sitio listo para GitHub Pages.
 
-## Arquitectura
+## Estructura del proyecto
 
-- `src/main.js`: UI, estado y descarga del `.elpx`
-- `src/lib/generator.js`: estructura del proyecto, XML y ZIP
-- `src/lib/xml.js`: escapado y serialización
-- `src/lib/zip.js`: generador ZIP sin dependencias externas
-- `src/lib/params.js`: lectura y escritura de parámetros URL
+```
+index.html              # UI del wizard
+src/main.js             # logica de la UI, wizard y galeria
+src/lib/generator.js    # arbol de paginas, bloques, HTML e imagenes
+src/lib/xml.js          # content.xml y escapado XML
+src/lib/zip.js          # generador ZIP sin dependencias externas
+src/lib/params.js       # lectura de parametros y config por defecto
+src/styles.css          # estilos del wizard (sliders, stepper)
+scripts/                # build, dev server y sincronizacion de assets
+.github/workflows/      # deploy a GitHub Pages
+```
+
+## Licencia
+
+Made with ❤️ by Area de Tecnologia Educativa.
