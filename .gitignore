@@ -4,3 +4,6 @@ assets/exelearning/
 .cache/exelearning-src/
 .cache/
 .DS_Store
+
+# OMC tooling runtime state (per-developer, not project state)
+.omc/
