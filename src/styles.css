@@ -105,3 +105,22 @@ body {
 .range-slider:focus::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
 }
+
+/* GitHub ribbon (top-right) — matches the elpx-validator UI. */
+.github-ribbon {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  border: 0;
+  pointer-events: auto;
+}
+.github-ribbon img {
+  display: block;
+}
+@media (max-width: 768px) {
+  .github-ribbon img {
+    width: 110px;
+    height: auto;
+  }
+}
