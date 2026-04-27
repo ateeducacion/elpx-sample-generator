@@ -74,12 +74,44 @@ function slugify(text) {
     .slice(0, 40) || 'project';
 }
 
+/**
+ * Build an ODE-conformant identifier factory.
+ *
+ * eXeLearning v4 expects every ODE id (page, block, iDevice, project,
+ * version) to match the regex `[0-9]{14}[A-Z0-9]{6}` — 14 digits of a
+ * `YYYYMMDDHHmmss` timestamp followed by 6 random uppercase alphanumeric
+ * characters. The XSD `odeIdentifierType` (public/app/schemas/ode/ode-content.xsd)
+ * enforces this pattern, and the importer relies on it for collision
+ * tracking. We mirror the algorithm used by `OdeXmlGenerator.generateOdeId()`.
+ *
+ * @param {() => number} random - Seeded RNG, range [0,1).
+ * @returns {() => string} A function that emits a fresh ODE id every call.
+ */
 function uniqueIdFactory(random) {
+  const baseTime = new Date();
+  const stampParts = [
+    baseTime.getFullYear().toString(),
+    String(baseTime.getMonth() + 1).padStart(2, '0'),
+    String(baseTime.getDate()).padStart(2, '0'),
+    String(baseTime.getHours()).padStart(2, '0'),
+    String(baseTime.getMinutes()).padStart(2, '0'),
+    String(baseTime.getSeconds()).padStart(2, '0'),
+  ];
+  const timestamp = stampParts.join('');
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let counter = 0;
-  return (prefix) => {
+  return () => {
     counter += 1;
-    const suffix = Math.floor(random() * 0xfffff).toString(36).padStart(4, '0');
-    return `${prefix}-${counter}-${suffix}`.toUpperCase();
+    let suffix = '';
+    for (let i = 0; i < 6; i += 1) {
+      suffix += alphabet.charAt(Math.floor(random() * alphabet.length));
+    }
+    // The legacy callers passed a prefix (`page`, `block`, `idevice`, …) but
+    // the v4 format does not embed a category in the id — the surrounding
+    // XML element already disambiguates. We accept and ignore the argument
+    // for backward compatibility with the existing call sites.
+    void counter;
+    return `${timestamp}${suffix}`;
   };
 }
 
@@ -222,8 +254,13 @@ function makeCalloutHtml(text, random) {
 }
 
 function makeImageHtml(asset, title) {
+  // v4 reference form: `{{context_path}}/<filename>`. The placeholder
+  // resolves to `content/resources/` (or `../content/resources/` for nested
+  // pages) at render time, so the XML body carries only the bare filename.
+  // Asset paths inside the ZIP live FLAT at `content/resources/<filename>`.
+  const filename = asset.filename || asset.path.replace(/^content\/resources\//, '');
   return `<figure class="exe-figure exe-image position-center" style="width: 100%;">
-    <img src="{{context_path}}/${asset.path}" alt="${escapeHtml(title)}" width="1280" height="720">
+    <img src="{{context_path}}/${filename}" alt="${escapeHtml(title)}" width="1280" height="720">
     <figcaption class="figcaption"><span class="title"><em>${escapeHtml(title)}</em></span></figcaption>
   </figure>`;
 }
@@ -358,11 +395,22 @@ function buildPageTree(config, random, availableThemes = DEFAULT_UPSTREAM_THEME_
   const urls = normalizeLines(config.imageUrls.join('\n'));
   if (contentTypes.includes('image')) {
     const sourceUrls = urls.length ? urls : [''];
+    const seenNames = new Set();
     for (let i = 0; i < sourceUrls.length; i += 1) {
+      // v4 layout: assets live FLAT under content/resources/<filename>.
+      // No per-asset UUID subfolder (that was a v3 artefact normalised
+      // away by scripts/flatten-elpx.ts in the eXeLearning repo).
+      // Collision-safe filenames keep the layout deterministic.
+      let filename = `image-${i + 1}.jpg`;
+      while (seenNames.has(filename)) {
+        filename = `image-${i + 1}-${seenNames.size + 1}.jpg`;
+      }
+      seenNames.add(filename);
       assets.push({
         url: sourceUrls[i] || '',
-        name: `image-${i + 1}`,
-        path: `content/resources/${id('asset')}/image-${i + 1}.jpg`,
+        name: filename.replace(/\.jpg$/i, ''),
+        path: `content/resources/${filename}`,
+        filename,
       });
     }
   }
@@ -680,24 +728,106 @@ async function buildThemeFilesFromAssets(theme) {
 }
 
 async function buildTextIdeviceFiles() {
+  // v4 layout for `idevices/<type>/` inside an .elpx is FLAT: only the
+  // export-side files live there (text.html, text.css, text.js, plus the
+  // exequextsq.svg quote-mark asset). The legacy edition/* and export/*
+  // sub-trees were source-tree artefacts; the exporter copies the export
+  // outputs flat. See doc/elpx-format/examples/full-package-tree.md and
+  // public/files/perm/idevices/base/text/ in the upstream repository.
   const files = [
-    ['idevices/text/config.xml', `<text/>`],
-    ['idevices/text/text-icon.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"></svg>'],
-    ['idevices/text/edition/text.css', buildIdeviceCss()],
-    ['idevices/text/edition/text.test.js', buildIdeviceJs()],
-    ['idevices/text/edition/text.js', buildIdeviceJs()],
-    ['idevices/text/export/text.html', buildIdeviceHtml()],
-    ['idevices/text/export/exequextsq.svg', '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"></svg>'],
-    ['idevices/text/export/text.css', buildIdeviceCss()],
-    ['idevices/text/export/text.test.js', buildIdeviceJs()],
-    ['idevices/text/export/text.js', buildIdeviceJs()],
+    {
+      zipName: 'idevices/text/text.html',
+      upstream: 'export/text.html',
+      fallback: buildIdeviceHtml(),
+    },
+    {
+      zipName: 'idevices/text/text.css',
+      upstream: 'export/text.css',
+      fallback: buildIdeviceCss(),
+    },
+    {
+      zipName: 'idevices/text/text.js',
+      upstream: 'export/text.js',
+      fallback: buildIdeviceJs(),
+    },
+    {
+      zipName: 'idevices/text/exequextsq.svg',
+      upstream: 'export/exequextsq.svg',
+      fallback: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"></svg>',
+    },
   ];
   const output = [];
-  for (const [name, fallback] of files) {
-    const upstream = await tryFetchText(`${EXELEARNING_IDEVICE_ROOT}/${name.split('/').slice(2).join('/')}`, fallback);
-    output.push({ name, data: upstream });
+  for (const file of files) {
+    const upstream = await tryFetchText(`${EXELEARNING_IDEVICE_ROOT}/${file.upstream}`, file.fallback);
+    output.push({ name: file.zipName, data: upstream });
   }
   return output;
+}
+
+/**
+ * Build a 1280x720 PNG screenshot for the project.
+ *
+ * v4 packages always carry a project thumbnail at the ZIP root
+ * (see doc/elpx-format/screenshot.md). When running in a browser we draw
+ * one with HTMLCanvasElement; outside a browser (Node-driven build) we
+ * fall back to a tiny 1x1 transparent PNG so the file still validates as
+ * PNG against the bundled magic-byte check.
+ *
+ * @param {object} project - Project model from buildPageTree().
+ * @returns {Promise<Uint8Array>} Raw PNG bytes.
+ */
+async function buildProjectScreenshot(project) {
+  const title = (project.meta && project.meta.title) || 'eXeLearning project';
+
+  if (typeof document !== 'undefined' && typeof document.createElement === 'function') {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1280;
+    canvas.height = 720;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const accent = (project.meta && project.meta.themeAccent) || '#1565c0';
+      const grad = ctx.createLinearGradient(0, 0, 1280, 720);
+      grad.addColorStop(0, accent);
+      grad.addColorStop(1, '#0d47a1');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1280, 720);
+      // Decorative bands
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(0, 0, 1280, 80);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(0, 720 - 80, 1280, 80);
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '24px sans-serif';
+      ctx.fillText('eXeLearning project', 1280 / 2, 720 - 40);
+      // Title — wrap to 32 chars per line, max 3 lines, scale font
+      const words = String(title).split(/\s+/);
+      const lines = [];
+      let current = '';
+      for (const w of words) {
+        if (!current) current = w;
+        else if ((`${current} ${w}`).length <= 32) current = `${current} ${w}`;
+        else { lines.push(current); current = w; }
+      }
+      if (current) lines.push(current);
+      const trimmed = lines.slice(0, 3);
+      const fontSize = trimmed.length === 1 ? 80 : trimmed.length === 2 ? 64 : 52;
+      ctx.font = `bold ${fontSize}px sans-serif`;
+      const lineHeight = fontSize * 1.25;
+      const startY = 720 / 2 - (trimmed.length * lineHeight) / 2 + lineHeight / 2;
+      for (let i = 0; i < trimmed.length; i += 1) {
+        ctx.fillText(trimmed[i], 1280 / 2, startY + i * lineHeight);
+      }
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (blob) {
+        return new Uint8Array(await blob.arrayBuffer());
+      }
+    }
+  }
+
+  // Fallback: 1x1 transparent PNG (still passes magic-byte validation).
+  return decodeBase64ToBytes(LOGO_PNG_BASE64);
 }
 
 async function buildStaticFiles(project, rootSlug) {
@@ -705,6 +835,8 @@ async function buildStaticFiles(project, rootSlug) {
   const totalPages = project.pages.length;
   files.push({ name: 'index.html', data: buildIndexHtml(project) });
   files.push({ name: 'content.dtd', data: await tryFetchText(EXELEARNING_DTD_PATH, buildContentDtd()) });
+  // v4 packages always ship a project thumbnail at the ZIP root.
+  files.push({ name: 'screenshot.png', data: await buildProjectScreenshot(project) });
   files.push({ name: 'content/css/base.css', data: `body{font-family:Verdana,Arial,sans-serif;background:#f6f7fb;color:#111827;margin:0}img{max-width:100%}.exe-footer{margin-top:2rem;font-size:.9rem;color:#555}.highlight{background:#fef08a}.exe-callout{padding:1rem;border-left:4px solid #0f766e;background:#ecfeff}.exe-table{width:100%;border-collapse:collapse}.exe-table th,.exe-table td{border:1px solid #cbd5e1;padding:.5rem}.mermaid{padding:1rem;background:#f8fafc;border:1px solid #dbe4ea;border-radius:.75rem}.exe-meta{font-size:.9rem;color:#475569}` });
   files.push({ name: 'content/img/exe_powered_logo.png', data: decodeBase64ToBytes(LOGO_PNG_BASE64) });
   files.push(...buildThemeFiles(project.meta.theme));
